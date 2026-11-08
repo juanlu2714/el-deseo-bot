@@ -22,10 +22,8 @@ export const data = new SlashCommandBuilder()
   );
 
 export async function execute(interaction: ChatInputCommandInteraction) {
-  // Obtenemos el canal seleccionado dinámicamente por el usuario
   const selectedChannel = interaction.options.getChannel('canal', true);
 
-  // Le pasamos el ID del canal elegido dentro del customId del modal
   const modal = new ModalBuilder()
     .setCustomId(`announcement_modal_${selectedChannel.id}`)
     .setTitle('Nuevo Anuncio Oficial');

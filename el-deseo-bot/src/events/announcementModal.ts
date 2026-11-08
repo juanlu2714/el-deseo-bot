@@ -1,12 +1,10 @@
 import { ModalSubmitInteraction, EmbedBuilder, TextChannel } from 'discord.js';
 
 export async function handleAnnouncementModal(interaction: ModalSubmitInteraction) {
-  if (!interaction.customId.startsWith('announcement_modal')) return;
+  if (!interaction.customId.startsWith('announcement_modal_')) return;
 
-  // 1. Extraemos el ID del canal directamente del customId del modal
+  // Extraemos el ID del canal desde el customId (announcement_modal_ID)
   const channelId = interaction.customId.replace('announcement_modal_', '');
-
-  // 2. Buscamos el canal en el servidor
   const targetChannel = interaction.guild?.channels.cache.get(channelId) as TextChannel;
 
   if (!targetChannel) {
@@ -17,12 +15,10 @@ export async function handleAnnouncementModal(interaction: ModalSubmitInteractio
     return;
   }
 
-  // 3. Recogemos los campos del formulario
   const title = interaction.fields.getTextInputValue('announcement_title');
   const description = interaction.fields.getTextInputValue('announcement_description');
   const imageUrl = interaction.fields.getTextInputValue('announcement_image');
 
-  // 4. Construimos el Embed
   const embed = new EmbedBuilder()
     .setColor('#ff9900')
     .setTitle(title)
@@ -38,7 +34,6 @@ export async function handleAnnouncementModal(interaction: ModalSubmitInteractio
   }
 
   try {
-    // 5. Enviamos al canal seleccionado dinámicamente
     await targetChannel.send({
       content: '@everyone',
       embeds: [embed],
