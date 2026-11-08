@@ -48,16 +48,26 @@ const rest = new REST().setToken(config.token);
 
 (async () => {
   try {
+    // 1. Intentamos vaciar la cache del servidor (Guild) silenciosamente
+    console.log('🧹 Intentando eliminar comandos antiguos del servidor...');
+    try {
+      await rest.put(
+        `/applications/${config.clientId}/guilds/${config.guildId}/commands` as `/${string}`,
+        { body: [] }
+      );
+      console.log('✅ Comandos antiguos del servidor eliminados.');
+    } catch (e) {
+      console.log('⚠️ No se pudieron borrar vía Guild API (continuando con despliegue global)...');
+    }
+
+    // 2. Desplegamos únicamente los comandos globales actualizados
     console.log('🔄 Registrando comandos Slash Globales...');
-    
-    // Registramos los comandos de forma global (se propagarán a todos tus servidores)
     await rest.put(
       Routes.applicationCommands(config.clientId),
       { body: commands }
     );
-    
     console.log('✅ ¡Comandos registrados con éxito globalmente!');
   } catch (error) {
-    console.error('❌ Error al registrar comandos:', error);
+    console.error('❌ Error general al registrar comandos:', error);
   }
 })();
