@@ -1,55 +1,59 @@
 import { ModalSubmitInteraction, EmbedBuilder, TextChannel } from 'discord.js';
 
 export async function handleAnnouncementModal(interaction: ModalSubmitInteraction) {
-  // Comprobamos que el customId empiece por el prefijo dinámico
-  if (!interaction.customId.startsWith('announcement_modal_')) return;
+  // Verificamos que sea un modal de anuncio
+  if (!interaction.customId.startsWith('announcement_modal')) return;
 
-  // Extraemos el ID del canal seleccionado en el comando slash
+  // 1. Extraemos el ID del canal que viene en el customId (announcement_modal_IDDELCANAL)
   const channelId = interaction.customId.replace('announcement_modal_', '');
-  const channel = interaction.guild?.channels.cache.get(channelId) as TextChannel;
 
-  if (!channel) {
-    return interaction.reply({
-      content: '❌ No se ha encontrado el canal de destino seleccionado.',
+  // 2. Buscamos el canal objetivo en el servidor
+  const targetChannel = interaction.guild?.channels.cache.get(channelId) as TextChannel;
+
+  if (!targetChannel) {
+    await interaction.reply({
+      content: '❌ No se pudo encontrar el canal seleccionado para enviar el anuncio.',
       ephemeral: true,
     });
+    return;
   }
 
+  // 3. Obtenemos los valores introducidos en el modal
   const title = interaction.fields.getTextInputValue('announcement_title');
   const description = interaction.fields.getTextInputValue('announcement_description');
   const imageUrl = interaction.fields.getTextInputValue('announcement_image');
 
-  // Construimos el Embed profesional
+  // 4. Construimos el Embed corporativo
   const embed = new EmbedBuilder()
-    .setColor('#ff9900') // Color naranja / dorado corporativo
+    .setColor('#ff9900')
     .setTitle(title)
     .setDescription(description)
+    .setTimestamp()
     .setFooter({
-      text: `Publicado por ${interaction.user.username} | El Deseo`,
-      iconURL: interaction.user.displayAvatarURL(),
-    })
-    .setTimestamp();
+      text: 'El Deseo Origins • Anuncio Oficial',
+      iconURL: interaction.guild?.iconURL() || undefined,
+    });
 
-  if (imageUrl && imageUrl.startsWith('http')) {
-    embed.setImage(imageUrl);
+  if (imageUrl && imageUrl.trim().length > 0) {
+    embed.setImage(imageUrl.trim());
   }
 
   try {
-    // Enviamos el embed al canal dinámico
-    await channel.send({
-      content: '@everyone', // Cambia a '@here' o elimínalo si no deseas mención global
+    // 5. Enviamos la mención @everyone y el Embed al canal seleccionado
+    await targetChannel.send({
+      content: '@everyone',
       embeds: [embed],
     });
 
-    // Respondemos al admin de forma privada
+    // 6. Confirmamos al usuario que ejecutó el comando (de forma privada/ephemeral)
     await interaction.reply({
-      content: `✅ Anuncio publicado correctamente en <#${channelId}>.`,
+      content: `✅ Anuncio publicado correctamente en ${targetChannel}.`,
       ephemeral: true,
     });
   } catch (error) {
-    console.error('Error al enviar el anuncio:', error);
+    console.error('Error al publicar el anuncio:', error);
     await interaction.reply({
-      content: `❌ Ocurrió un error al intentar publicar en <#${channelId}>. Verifica que el bot tenga permisos suficientes.`,
+      content: '❌ Ocurrió un error al intentar enviar el anuncio al canal especificado.',
       ephemeral: true,
     });
   }
