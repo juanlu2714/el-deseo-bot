@@ -1,4 +1,4 @@
-import { REST, Routes, SlashCommandBuilder, PermissionFlagsBits } from 'discord.js';
+import { REST, Routes, SlashCommandBuilder, PermissionFlagsBits, ChannelType } from 'discord.js';
 import { config } from './config';
 
 const commands = [
@@ -34,6 +34,13 @@ const commands = [
     .setName('anuncio')
     .setDescription('Abre un formulario para enviar un anuncio oficial en formato Embed')
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+    .addChannelOption(option =>
+      option
+        .setName('canal')
+        .setDescription('Selecciona el canal donde se publicará el anuncio')
+        .addChannelTypes(ChannelType.GuildText)
+        .setRequired(true)
+    )
     .toJSON(),
 ];
 
@@ -41,14 +48,15 @@ const rest = new REST().setToken(config.token);
 
 (async () => {
   try {
-    console.log('🔄 Registrando comandos Slash...');
+    console.log('🔄 Registrando comandos Slash de forma global...');
     
+    // Cambiado a registro global para evitar el error 50001 (Missing Access) por Guild ID
     await rest.put(
-      Routes.applicationGuildCommands(config.clientId, config.guildId),
+      Routes.applicationCommands(config.clientId),
       { body: commands }
     );
     
-    console.log('✅ ¡Comandos registrados con éxito!');
+    console.log('✅ ¡Comandos registrados con éxito globalmente!');
   } catch (error) {
     console.error('❌ Error al registrar comandos:', error);
   }
