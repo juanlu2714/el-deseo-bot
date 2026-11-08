@@ -10,7 +10,6 @@ const setupTickets_1 = require("./commands/setupTickets");
 const setupEstado_1 = require("./commands/setupEstado");
 const giveaway_1 = require("./commands/giveaway");
 const statusHandler_1 = require("./events/statusHandler");
-const announcementModal_1 = require("./events/announcementModal");
 const suggestionMessageHandler_1 = require("./events/suggestionMessageHandler");
 const ticketHandler_1 = require("./events/ticketHandler");
 const automodHandler_1 = require("./events/automodHandler");
@@ -23,7 +22,7 @@ const client = new discord_js_1.Client({
     ],
 });
 client.once('clientReady', () => {
-    console.log(`[BOT] �Conectado con �xito como ${client.user?.tag}!`);
+    console.log(`[BOT] ¡Conectado con éxito como ${client.user?.tag}!`);
     (0, statusHandler_1.startStatusUpdater)(client);
 });
 client.on('guildMemberAdd', guildMemberAdd_1.handleGuildMemberAdd);
@@ -36,7 +35,7 @@ client.on('interactionCreate', async (interaction) => {
         if (interaction.commandName === 'xelping') {
             const ping = client.ws.ping;
             await interaction.reply({
-                content: `?? �Pong de **XelcoreOficial**! Latencia: \`${ping}ms\``,
+                content: `🏓 ¡Pong de **XelcoreOficial**! Latencia: \`${ping}ms\``,
                 flags: discord_js_1.MessageFlags.Ephemeral,
             });
         }
@@ -57,11 +56,6 @@ client.on('interactionCreate', async (interaction) => {
         }
         else if (interaction.commandName === 'giveaway') {
             await (0, giveaway_1.executeGiveaway)(interaction);
-        }
-    }
-    if (interaction.isModalSubmit()) {
-        if (interaction.customId.startsWith('announcement_modal_')) {
-            await (0, announcementModal_1.handleAnnouncementModal)(interaction);
         }
     }
     if (interaction.isButton()) {

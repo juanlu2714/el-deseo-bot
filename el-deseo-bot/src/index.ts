@@ -8,7 +8,6 @@ import { execute as executeSetupTickets } from './commands/setupTickets';
 import { execute as executeSetupEstado } from './commands/setupEstado';
 import { executeGiveaway } from './commands/giveaway';
 import { startStatusUpdater } from './events/statusHandler';
-import { handleAnnouncementModal } from './events/announcementModal';
 import { handleSuggestionMessage } from './events/suggestionMessageHandler';
 import { handleTicketButtons, handleTicketSelectMenu } from './events/ticketHandler';
 import { handleAutoMod } from './events/automodHandler';
@@ -23,7 +22,7 @@ const client = new Client({
 });
 
 client.once('clientReady', () => {
-    console.log(`[BOT] ¡Conectado con éxito como ${client.user?.tag}!`);
+    console.log(`[BOT] Â¡Conectado con Ã©xito como ${client.user?.tag}!`);
     startStatusUpdater(client);
 });
 
@@ -39,7 +38,7 @@ client.on('interactionCreate', async (interaction) => {
         if (interaction.commandName === 'xelping') {
             const ping = client.ws.ping;
             await interaction.reply({
-                content: `?? ¡Pong de **XelcoreOficial**! Latencia: \`${ping}ms\``,
+                content: `ðŸ“ Â¡Pong de **XelcoreOficial**! Latencia: \`${ping}ms\``,
                 flags: MessageFlags.Ephemeral,
             });
         } else if (interaction.commandName === 'testwelcome') {
@@ -54,12 +53,6 @@ client.on('interactionCreate', async (interaction) => {
             await executeSetupTickets(interaction);
         } else if (interaction.commandName === 'giveaway') {
             await executeGiveaway(interaction);
-        }
-    }
-
-    if (interaction.isModalSubmit()) {
-        if (interaction.customId.startsWith('announcement_modal_')) {
-            await handleAnnouncementModal(interaction);
         }
     }
 

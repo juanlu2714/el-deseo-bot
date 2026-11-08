@@ -1,56 +1,85 @@
 import {
   SlashCommandBuilder,
   ChatInputCommandInteraction,
-  ModalBuilder,
-  TextInputBuilder,
-  TextInputStyle,
-  ActionRowBuilder,
+  EmbedBuilder,
   PermissionFlagsBits,
   ChannelType,
+  TextChannel,
 } from 'discord.js';
 
 export const data = new SlashCommandBuilder()
   .setName('anuncio')
-  .setDescription('Abre un formulario para enviar un anuncio oficial en formato Embed')
+  .setDescription('Envía un anuncio con título y descripción a cualquier canal')
   .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
   .addChannelOption(option =>
     option
       .setName('canal')
-      .setDescription('Selecciona el canal donde se publicará el anuncio')
+      .setDescription('Canal de texto donde se enviará el anuncio')
       .addChannelTypes(ChannelType.GuildText)
       .setRequired(true)
+  )
+  .addStringOption(option =>
+    option
+      .setName('titulo')
+      .setDescription('Título principal del anuncio')
+      .setRequired(true)
+  )
+  .addStringOption(option =>
+    option
+      .setName('descripcion')
+      .setDescription('Contenido o texto del anuncio')
+      .setRequired(true)
+  )
+  .addStringOption(option =>
+    option
+      .setName('imagen')
+      .setDescription('URL de una imagen opcional para el anuncio')
+      .setRequired(false)
   );
 
 export async function execute(interaction: ChatInputCommandInteraction) {
-  const selectedChannel = interaction.options.getChannel('canal', true);
+  const channel = interaction.options.getChannel('canal', true) as TextChannel;
+  const title = interaction.options.getString('titulo', true);
+  const description = interaction.options.getString('descripcion', true);
+  const imageUrl = interaction.options.getString('imagen');
 
-  const modal = new ModalBuilder()
-    .setCustomId(`announcement_modal_${selectedChannel.id}`)
-    .setTitle('Nuevo Anuncio Oficial');
+  if (!channel || channel.type !== ChannelType.GuildText) {
+    await interaction.reply({
+      content: '❌ Por favor, selecciona un canal de texto válido.',
+      ephemeral: true,
+    });
+    return;
+  }
 
-  const titleInput = new TextInputBuilder()
-    .setCustomId('announcement_title')
-    .setLabel('Título del anuncio')
-    .setStyle(TextInputStyle.Short)
-    .setRequired(true);
+  const embed = new EmbedBuilder()
+    .setColor('#ff9900')
+    .setTitle(title)
+    .setDescription(description.replace(/\\n/g, '\n')) // Permite saltos de línea si escribes \n
+    .setTimestamp()
+    .setFooter({
+      text: `Anuncio oficial • ${interaction.guild?.name || 'Servidor'}`,
+      iconURL: interaction.guild?.iconURL() || undefined,
+    });
 
-  const descriptionInput = new TextInputBuilder()
-    .setCustomId('announcement_description')
-    .setLabel('Contenido del anuncio')
-    .setStyle(TextInputStyle.Paragraph)
-    .setRequired(true);
+  if (imageUrl) {
+    embed.setImage(imageUrl);
+  }
 
-  const imageInput = new TextInputBuilder()
-    .setCustomId('announcement_image')
-    .setLabel('URL de la imagen (Opcional)')
-    .setStyle(TextInputStyle.Short)
-    .setRequired(false);
+  try {
+    await channel.send({
+      content: '@everyone', // Puedes quitar esto si no quieres que mencione a todos
+      embeds: [embed],
+    });
 
-  modal.addComponents(
-    new ActionRowBuilder<TextInputBuilder>().addComponents(titleInput),
-    new ActionRowBuilder<TextInputBuilder>().addComponents(descriptionInput),
-    new ActionRowBuilder<TextInputBuilder>().addComponents(imageInput)
-  );
-
-  await interaction.showModal(modal);
+    await interaction.reply({
+      content: `✅ ¡Anuncio enviado correctamente a ${channel}!`,
+      ephemeral: true,
+    });
+  } catch (error) {
+    console.error('Error al enviar el anuncio:', error);
+    await interaction.reply({
+      content: '❌ Hubo un error al intentar enviar el anuncio al canal seleccionado.',
+      ephemeral: true,
+    });
+  }
 }
