@@ -1,8 +1,8 @@
-import { Client, GatewayIntentBits, MessageFlags } from 'discord.js';
+import { Client, GatewayIntentBits, MessageFlags, REST, Routes } from 'discord.js';
 import { config } from './config';
 import { handleGuildMemberAdd } from './events/guildMemberAdd';
 import { execute as executeTestWelcome } from './commands/testwelcome';
-import { execute as executeAnuncio } from './commands/anuncio';
+import { execute as executeAnuncio, data as anuncioData } from './commands/anuncio';
 import { execute as executeSugerencia } from './commands/sugerencia';
 import { execute as executeSetupTickets } from './commands/setupTickets';
 import { execute as executeSetupEstado } from './commands/setupEstado';
@@ -21,18 +21,35 @@ const client = new Client({
     ],
 });
 
-client.once('clientReady', () => {
+// Evento de inicio del bot y registro de comandos
+client.once('clientReady', async () => {
     console.log(`[BOT] ¡Conectado con éxito como ${client.user?.tag}!`);
     startStatusUpdater(client);
+
+    // Registro forzado del nuevo comando /anuncio en la API de Discord
+    const rest = new REST({ version: '10' }).setToken(config.token);
+    try {
+        console.log('[BOT] Actualizando comandos de barra en Discord...');
+        await rest.put(
+            Routes.applicationCommands(client.user!.id),
+            { body: [anuncioData.toJSON()] },
+        );
+        console.log('[BOT] ¡Comando /anuncio actualizado correctamente en Discord!');
+    } catch (error) {
+        console.error('[BOT] Error al registrar comandos:', error);
+    }
 });
 
+// 1. Evento de bienvenida real
 client.on('guildMemberAdd', handleGuildMemberAdd);
 
+// 2. Procesamiento de mensajes de texto (AutoMod primero, luego Sugerencias)
 client.on('messageCreate', async (message) => {
     await handleAutoMod(message);
     await handleSuggestionMessage(message);
 });
 
+// 3. Manejador central de interacciones (Slash commands, Botones y Menús Desplegables)
 client.on('interactionCreate', async (interaction) => {
     if (interaction.isChatInputCommand()) {
         if (interaction.commandName === 'xelping') {

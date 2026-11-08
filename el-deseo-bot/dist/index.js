@@ -21,15 +21,29 @@ const client = new discord_js_1.Client({
         discord_js_1.GatewayIntentBits.MessageContent,
     ],
 });
-client.once('clientReady', () => {
+// Evento de inicio del bot y registro de comandos
+client.once('clientReady', async () => {
     console.log(`[BOT] ¡Conectado con éxito como ${client.user?.tag}!`);
     (0, statusHandler_1.startStatusUpdater)(client);
+    // Registro forzado del nuevo comando /anuncio en la API de Discord
+    const rest = new discord_js_1.REST({ version: '10' }).setToken(config_1.config.token);
+    try {
+        console.log('[BOT] Actualizando comandos de barra en Discord...');
+        await rest.put(discord_js_1.Routes.applicationCommands(client.user.id), { body: [anuncio_1.data.toJSON()] });
+        console.log('[BOT] ¡Comando /anuncio actualizado correctamente en Discord!');
+    }
+    catch (error) {
+        console.error('[BOT] Error al registrar comandos:', error);
+    }
 });
+// 1. Evento de bienvenida real
 client.on('guildMemberAdd', guildMemberAdd_1.handleGuildMemberAdd);
+// 2. Procesamiento de mensajes de texto (AutoMod primero, luego Sugerencias)
 client.on('messageCreate', async (message) => {
     await (0, automodHandler_1.handleAutoMod)(message);
     await (0, suggestionMessageHandler_1.handleSuggestionMessage)(message);
 });
+// 3. Manejador central de interacciones (Slash commands, Botones y Menús Desplegables)
 client.on('interactionCreate', async (interaction) => {
     if (interaction.isChatInputCommand()) {
         if (interaction.commandName === 'xelping') {
