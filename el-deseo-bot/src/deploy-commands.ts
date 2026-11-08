@@ -48,9 +48,9 @@ const rest = new REST().setToken(config.token);
 
 (async () => {
   try {
-    console.log('🔄 Registrando comandos Slash de forma global...');
+    console.log('🔄 Registrando comandos Slash Globales...');
     
-    // Cambiado a registro global para evitar el error 50001 (Missing Access) por Guild ID
+    // Registramos los comandos de forma global (se propagarán a todos tus servidores)
     await rest.put(
       Routes.applicationCommands(config.clientId),
       { body: commands }
