@@ -6,17 +6,27 @@ import {
   TextInputStyle,
   ActionRowBuilder,
   PermissionFlagsBits,
+  ChannelType,
 } from 'discord.js';
 
 export const data = new SlashCommandBuilder()
   .setName('anuncio')
   .setDescription('Abre un formulario para enviar un anuncio oficial en formato Embed')
-  .setDefaultMemberPermissions(PermissionFlagsBits.Administrator);
+  .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+  .addChannelOption(option =>
+    option
+      .setName('canal')
+      .setDescription('Selecciona el canal donde se publicará el anuncio')
+      .addChannelTypes(ChannelType.GuildText)
+      .setRequired(true)
+  );
 
 export async function execute(interaction: ChatInputCommandInteraction) {
-  // Creamos el modal
+  const canalDestino = interaction.options.getChannel('canal', true);
+
+  // Incluimos el ID del canal en el customId del modal para recuperarlo al enviar
   const modal = new ModalBuilder()
-    .setCustomId('announcement_modal')
+    .setCustomId(`announcement_modal_${canalDestino.id}`)
     .setTitle('Redactar Anuncio Oficial');
 
   // Campo: Título
@@ -24,7 +34,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     .setCustomId('announcement_title')
     .setLabel('Título del Anuncio')
     .setStyle(TextInputStyle.Short)
-    .setPlaceholder('Ej: 📢 Mantenimiento programado / Nuevo Clúster de ARK')
+    .setPlaceholder('Ej: 📢 Apertura de El Deseo Origins - Ragnarok x3')
     .setRequired(true)
     .setMaxLength(256);
 
@@ -33,7 +43,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     .setCustomId('announcement_description')
     .setLabel('Contenido del Anuncio')
     .setStyle(TextInputStyle.Paragraph)
-    .setPlaceholder('Escribe aquí el cuerpo del anuncio. Puedes usar Markdown (**negrita**, *cursiva*, listados, etc.).')
+    .setPlaceholder('Escribe aquí el cuerpo del anuncio. Puedes usar Markdown (**negrita**, *cursiva*, etc.).')
     .setRequired(true);
 
   // Campo opcional: URL de Imagen o Banner
