@@ -1,13 +1,12 @@
 import { ModalSubmitInteraction, EmbedBuilder, TextChannel } from 'discord.js';
 
 export async function handleAnnouncementModal(interaction: ModalSubmitInteraction) {
-  // Verificamos que sea un modal de anuncio
   if (!interaction.customId.startsWith('announcement_modal')) return;
 
-  // 1. Extraemos el ID del canal que viene en el customId (announcement_modal_IDDELCANAL)
+  // 1. Extraemos el ID del canal directamente del customId del modal
   const channelId = interaction.customId.replace('announcement_modal_', '');
 
-  // 2. Buscamos el canal objetivo en el servidor
+  // 2. Buscamos el canal en el servidor
   const targetChannel = interaction.guild?.channels.cache.get(channelId) as TextChannel;
 
   if (!targetChannel) {
@@ -18,12 +17,12 @@ export async function handleAnnouncementModal(interaction: ModalSubmitInteractio
     return;
   }
 
-  // 3. Obtenemos los valores introducidos en el modal
+  // 3. Recogemos los campos del formulario
   const title = interaction.fields.getTextInputValue('announcement_title');
   const description = interaction.fields.getTextInputValue('announcement_description');
   const imageUrl = interaction.fields.getTextInputValue('announcement_image');
 
-  // 4. Construimos el Embed corporativo
+  // 4. Construimos el Embed
   const embed = new EmbedBuilder()
     .setColor('#ff9900')
     .setTitle(title)
@@ -39,13 +38,12 @@ export async function handleAnnouncementModal(interaction: ModalSubmitInteractio
   }
 
   try {
-    // 5. Enviamos la mención @everyone y el Embed al canal seleccionado
+    // 5. Enviamos al canal seleccionado dinámicamente
     await targetChannel.send({
       content: '@everyone',
       embeds: [embed],
     });
 
-    // 6. Confirmamos al usuario que ejecutó el comando (de forma privada/ephemeral)
     await interaction.reply({
       content: `✅ Anuncio publicado correctamente en ${targetChannel}.`,
       ephemeral: true,
